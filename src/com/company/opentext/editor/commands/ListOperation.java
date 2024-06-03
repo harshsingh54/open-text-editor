@@ -1,13 +1,18 @@
 package com.company.opentext.editor.commands;
 
-import com.company.opentext.editor.operands.Operands;
-
 import java.util.List;
 
 public class ListOperation implements Operations {
+
+    private List<String> lines;
+
+    public ListOperation(List<String> lines){
+        this.lines = lines;
+    }
+
     @Override
-    public void operate(Operands operands) {
-        List<String> lines = operands.getLines();
+    public void operate() {
+        List<String> lines = this.lines;
         if (lines.isEmpty()) {
             System.out.println("No lines to display.");
         } else {
@@ -15,6 +20,5 @@ public class ListOperation implements Operations {
                 System.out.printf("%d: %s%n", i + 1, lines.get(i));
             }
         }
-
     }
 }

@@ -1,12 +1,9 @@
 package com.company.opentext.editor;
 
 import com.company.opentext.editor.commands.*;
-import com.company.opentext.editor.operands.Operands;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class LineEditor {
     private List<String> lines;
@@ -33,91 +30,38 @@ public class LineEditor {
 
     public void run() {
         boolean running = true;
+        Map<String, Operations> operationsMap = new HashMap<>();
+
+        ListOperation listOperation = new ListOperation(lines);
+        operationsMap.put("list", listOperation);
+
+        InsertOperation insertOperation = new InsertOperation(lines, scanner);
+        operationsMap.put("ins", insertOperation);
+
+        DeleteOperation deleteOperation = new DeleteOperation(lines, scanner);
+        operationsMap.put("del", deleteOperation);
+
+        SaveOperation saveOperation = new SaveOperation(filePath, lines);
+        operationsMap.put("save", saveOperation);
+
+        HelpOperation helpOperation = new HelpOperation();
+        operationsMap.put("h", helpOperation);
 
         while (running) {
             System.out.print(">>: ");
             String command = scanner.nextLine().trim();
-            switch (command) {
-                case "h":
-                    printHelp();
-                    break;
-                case "quit":
-                    running = false;
-                    break;
-                case "list":
-                    listLines();
-                    break;
-                case "del":
-                    deleteLine();
-                    break;
-                case "ins":
-                    modifyLine();
-                    break;
-                case "save":
-                    saveToFile();
-                    break;
-                default:
-                    System.out.println("Unknown command. Type 'h' for help.");
+
+            if("quit".equals(command)){
+                System.out.println("Quitting application..");
+                running = false;
+            }else if(operationsMap.containsKey(command)){
+                operationsMap.get(command).operate();
+            }else{
+                System.out.println("Unknown command. Type 'h' for help.");
             }
         }
     }
 
-    private void printHelp() {
-        System.out.println("Commands:");
-        System.out.println("h - help");
-        System.out.println("quit - quits application");
-        System.out.println("list - list lines");
-        System.out.println("del - delete line");
-        System.out.println("ins - modify line");
-        System.out.println("save - save to file");
-    }
-
-    private void listLines() {
-        String filePath =this.filePath;
-        Operands operands= new Operands(filePath, lines);
-        ListOperation operation = new ListOperation();
-        operation.operate(operands);
-    }
-
-    private void deleteLine() {
-        System.out.print("Enter the line number to delete: ");
-        int lineNumber = Integer.parseInt(scanner.nextLine()) - 1;
-        if (lineNumber >= 0 && lineNumber < lines.size()) {
-            Operands operands = new Operands(filePath, lines);
-            operands.setLineNumber(lineNumber);
-
-            DeleteOperation deleteOperation = new DeleteOperation();
-            deleteOperation.operate(operands);
-
-        } else {
-            System.out.println("Invalid line number.");
-        }
-    }
-
-    private void modifyLine() {
-        System.out.print("Enter the line number to modify: ");
-        int lineNumber = Integer.parseInt(scanner.nextLine()) - 1;
-        if (lineNumber >= 0 && lineNumber <= lines.size()) {
-            System.out.print("Enter the new line: ");
-            String newLine = scanner.nextLine();
-
-            Operands operands = new Operands(filePath, lines);
-            operands.setInputString(newLine);
-            operands.setLineNumber(lineNumber);
-
-            InsertOperation insertOperation = new InsertOperation();
-            insertOperation.operate(operands);
-        } else {
-            System.out.println("Invalid line number.");
-        }
-    }
-
-    private void saveToFile() {
-        Operands operands = new Operands(filePath, lines);
-
-        SaveOperation saveOperation = new SaveOperation();
-        saveOperation.operate(operands);
-    }
 
     private void openFile(String filename) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
